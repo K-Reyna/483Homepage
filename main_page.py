@@ -6,7 +6,7 @@ import time
 
 
 st.markdown("# Personal Website")
-st.sidebar.markdown("# Main page")
+st.sidebar.markdown("# Home Page")
 
 'Hello! Welcome to my personal website'
 'My name is Karen Reynaga. On the left are some pages you can visit to learn more about me.'
