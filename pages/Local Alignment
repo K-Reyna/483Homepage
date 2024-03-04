@@ -4,6 +4,7 @@ import numpy as np
 from io import StringIO
 
 st.markdown("# Local Alignment Tool")
+st.sidebar.markdown("# Local Alignment")
 st.divider()
 
 DISPLAY_TABLE = False
