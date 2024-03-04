@@ -1,0 +1,155 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from io import StringIO
+
+st.markdown("# Global Alignment Tool")
+st.divider()
+
+DISPLAY_TABLE = False
+
+def main(): 
+    option = st.selectbox('Input Format', ("String Format", "FASTA Format", "File Upload"))
+    # Option to display the alignment matrix
+    if st.toggle("Display Table"):
+        global DISPLAY_TABLE
+        DISPLAY_TABLE = True
+
+    
+    if option == "FASTA Format":
+        fastaFormat()
+    if option == "String Format":
+        stringFormat()
+    if option == "File Upload":
+        fileUpload()
+
+    
+def test():
+    st.divider()
+
+    string1 = "ATCGATCG"
+    string2 = "GCTAGCTA"
+
+    df = pd.DataFrame(np.random.randn(len(string2), len(string1)), columns=("%d_%s" % (i, string1[i]) for i in range(len(string1))),
+                      index=("%d_%s" % (i, string2[i]) for i in range(len(string2))))
+    st.table(df)
+
+    st.divider()
+
+def fastaFormat():
+    input = st.text_area("Input your DNA strings in FASTA format", value="", height=100, max_chars=1000)
+
+    if input:
+        strings = breakFASTA(input)
+
+        if len(strings) == 2:
+
+            st.write(f"String 1: {strings[0]}")
+            st.write(f"String 2: {strings[1]}")
+
+            # Display the LCS
+            calculateLCS(strings[0], strings[1])
+        else:
+            st.warning("Please provide valid FASTA format with exactly two DNA sequences.")
+
+
+def stringFormat():
+    String1 = st.text_input('Enter your first string')
+    String2 = st.text_input('Enter your second string')
+
+    String1 = String1.upper()
+    String2 = String2.upper()
+
+    if String1 and String2:
+        calculateLCS(String1, String2)
+
+
+def fileUpload():
+    uploaded_file = st.file_uploader("Upload a text file in FASTA format", type="txt")
+    if uploaded_file is not None:
+        stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+        string_data = stringio.read()
+        strings = breakFASTA(string_data)
+
+        # if two strings were not found in file
+        if len(strings) != 2:
+            st.warning("Please provide file with valid FASTA format with exactly two DNA sequences.")
+            return
+        
+        # Display strings
+        st.write("String 1: ", strings[0])
+        st.write("String 2: ", strings[1])
+
+        # Calculate LCS
+        calculateLCS(strings[0], strings[1])
+
+
+def breakFASTA(input):
+    sequences = []
+    currentString = ""
+
+    for line in input.split('\n'):
+        line = line.strip()
+        if line.startswith('>'):
+            sequences.append(currentString)
+            currentString = ""
+        else:
+            currentString += line
+
+    sequences.append(currentString)
+    sequences.remove("")
+
+    return sequences
+
+
+def calculateLCS(String1, String2):
+    str1len = len(String1)
+    str2len = len(String2)
+
+    arr = [[0] * (str2len + 1) for i in range(str1len + 1)]
+
+
+    for i in range(1, str1len + 1):
+        for j in range (1, str2len + 1):
+            
+            # if letters match add 1
+            if (String1[i - 1] == String2[j - 1]):
+                arr[i][j] = arr[i - 1][j - 1] + 1
+            else: # if letters dont match take max of neighboring cells
+                arr[i][j] = max(arr[i][j - 1], arr[i - 1][j])
+
+    # backtrack
+    lcs = ""
+
+    i = str1len
+    j = str2len
+
+    while (i > 0 and j > 0):
+        if (String1[i - 1] == String2[j - 1]):
+            lcs += String1[i - 1]
+            i -= 1
+            j -= 1
+        elif (arr[i - 1][j] > arr[i][j - 1]):
+            i -= 1
+        elif (arr[i - 1][j] < arr[i][j - 1]):
+            j -= 1
+        else:
+            i -= 1
+
+    lcsRev = lcs[::-1]    
+    st.markdown(f"**Longest Common Subsequence:** {lcsRev}")
+    
+    # Display the table
+    String1 = "0" + String1
+    String2 = "0" + String2
+
+    if DISPLAY_TABLE:
+        df = pd.DataFrame(arr, columns=("%d.%s" % (i, String1[i]) for i in range(len(String1))),
+                      index=("%d.%s" % (i, String2[i]) for i in range(len(String2))))
+        st.table(df)
+
+
+
+
+
+main()
