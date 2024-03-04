@@ -6,7 +6,7 @@ import time
 
 
 st.markdown("# Biological Alignment Tool")
-# st.sidebar.markdown("# Main page")
+st.sidebar.markdown("# Main page")
 
 'This webapp serves as an educational tool for alignment for biological applications.'
 
