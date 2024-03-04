@@ -6,6 +6,7 @@ import numpy as np
 # Streamlit app
 def main():
     st.title('Background Information')
+    st.sidebar.markdown("# Background Information")
     st.divider()
 
     # --------------------------- Alignment ---------------------------
