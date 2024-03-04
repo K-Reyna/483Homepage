@@ -5,8 +5,11 @@ import pandas as pd
 import time
 
 
-st.markdown("# Personal Website")
-st.sidebar.markdown("# Home Page")
+st.markdown("# Biological Alignment Tool")
+# st.sidebar.markdown("# Main page")
 
-'Hello! Welcome to my personal website'
-'My name is Karen Reynaga. On the left are some pages you can visit to learn more about me.'
+'This webapp serves as an educational tool for alignment for biological applications.'
+
+st.link_button("Background", "http://localhost:8501/Background")
+st.link_button("Global Alignment", "http://localhost:8501/Global_Alignment")
+st.link_button("Local Alignment", "http://localhost:8501/Local_Alignment")
