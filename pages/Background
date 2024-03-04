@@ -1,0 +1,216 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+
+
+# Streamlit app
+def main():
+    st.title('Background Information')
+    st.divider()
+
+    # --------------------------- Alignment ---------------------------
+    st.header('Alignment')
+    alignment()
+
+    # --------------------------- Biological Alignment ---------------------------
+    st.header('Biological Alignment')
+
+    st.subheader('What Makes It Biological?')
+    "Like general alignment, biological alignment also finds the longest common subsequence in two strings. However, in biological applications these two strings are representations of DNA or proteins."
+    "DNA is represented as four nucleotides, Adenine (A), Thymine (T), Guanine (G), and Cytosine (C)."
+    "Examples of DNA representation as a string:"
+    "ATAGTCGCTAG"
+    
+    st.subheader('Local Alignment')
+    
+    st.subheader('Global Alignment')
+    "Global alignment is similar to local alignment, however, we use a scoring matrix to penalize insertions, deletions, and substitutions."
+
+    st.subheader('Applications of Biological Alignment')
+    
+    # --------------------------- Additional Information ---------------------------
+    st.header('Additional Information')
+
+def alignment():
+    
+    st.subheader('What is it?')
+    "Alignment refers to the process of \"aligning\" two strings to better identify their longest common subsequence (LCS). This is useful to determine how similar the two strings are."
+
+    st.subheader('How does it work?')
+    "This process is done by using a table and examining each character in a string of characters individually, and giving each combination a score depending on how similar they are. We then use this score to find the LCS based on the characters shared by the strings."
+
+    st.caption("Example:")
+    "Lets say we have two sequences we want to compare: MARTS and SMART. If we were to compare these two strings without aligning them, our results would show that they are completely different:"
+    st.write("")
+
+    st.latex(r'''\begin{smallmatrix}
+                S && M && A && R && T \\
+                M && A && R && T && S \\
+                0&+&0&+&0&+&0&+&0&=&0
+                \end{smallmatrix}''')
+    ""
+    "With no alignment, our similarity score is 0 since none of the characters match, however, we can clearly see that many of the letters in both strings are the same. If we were to shift the word MARTS over by one space, then the similarity score would be higher:"
+    ""
+    st.latex(r'''\begin{smallmatrix}
+                S && \textcolor{03c900}{M} && \textcolor{03c900}{A} && \textcolor{03c900}{R} && \textcolor{03c900}{T} && -\\
+                - && \textcolor{03c900}{M} && \textcolor{03c900}{A} && \textcolor{03c900}{R} && \textcolor{03c900}{T} && S \\
+                0&+ &1&+ &1&+ &1&+ &1&+ &0&= &4
+                \end{smallmatrix}''')
+    ""
+    "By shifting the characters in MARTS to the right by one space, we get a similarity score of 4. From this, we also find the LCS, which is MART."
+
+    "What we are actually doing by shifting MARTS is inserting at the beginning (where we see the \"-\" being added) of MARTS and at the end of SMART. When aligning two strings we may need to make multiple insertions, or even make deletions."
+    "Consider the words BUILDER and LUBRICATED:"
+    ""
+    st.latex(r'''\begin{smallmatrix}
+                B && \textcolor{03c900}{U} && I && L && D && E && R \\
+                L && \textcolor{03c900}{U} && B && R && I && C && A && T && E && D\\
+                0&+ &1&+ &0&+ &0&+ &0&+ &0&+ &0&+ &0&+ &0&= &1
+                \end{smallmatrix}''')
+    ""
+    "Again, if we were to compare both words with no alignment, our score would not be maximised. We can clearly see more characters that are similar in both strings in the same order. If we were to make some insertions and deletions, we can get a better score:"
+    ""
+    st.latex(r'''\begin{smallmatrix}
+                B && \textcolor{03c900}{U} && - && - && \textcolor{03c900}{I} && L && D && \textcolor{03c900}{E} && R\\
+                L && \textcolor{03c900}{U} && B && R && \textcolor{03c900}{I} && C && A && \textcolor{03c900}{E} && D\\
+                0&+ &1&+ &0&+ &0&+ &1&+ &0&+ &0&+ &1&+ &0&= &3
+                \end{smallmatrix}''')
+    ""
+    "Here, we maximise our score by having two insertions in our first string, and the deleting the T from our second string, giving us an LCS of UIE."
+    "Although we maximised our score we could have gotten a different LCS by having two insertions in the first string, deleting the A, T, and E from our second string, and having two insertions at the end of our second string:"
+    ""
+    st.latex(r'''\begin{smallmatrix}
+                B && \textcolor{03c900}{U} && - && - && \textcolor{03c900}{I} && L && \textcolor{03c900}{D} && E && R\\
+                L && \textcolor{03c900}{U} && B && R && \textcolor{03c900}{I} && C && \textcolor{03c900}{D} && - && -\\
+                0&+ &1&+ &0&+ &0&+ &1&+ &0&+ &1&+ &0&+ &0&= &3
+                \end{smallmatrix}''')
+    ""
+    "This gives us an LCS of UID, but keeps our score at 3."
+    "The LCS of two strings is not always unique, meaning that there can be multiple combinations of insertions and deletions that give us different LCSs but the same score."
+    
+    
+
+# --------------------------- Alignment Algorithm ---------------------------
+    st.subheader("Algorithm")
+
+    "Our goal is to find the longest common subsequence of two strings. To do this, we will start by creating a 2D matrix with one string along each edge and an extra row and column added at the beginning:"
+
+    String1 = "BUILDER"
+    String2 = "LUBRICATED"
+    str1len = len(String1)
+    str2len = len(String2)
+    String1 = "0" + String1
+    String2 = "0" + String2
+    arr = [['-'] * (str2len + 1) for i in range(str1len + 1)]
+    for i in range(str2len + 1):
+        arr[0][i] = 0
+    for i in range(str1len + 1):
+        arr[i][0] = 0
+
+    df = pd.DataFrame(arr, columns=("%d.%s" % (i, String2[i]) for i in range(len(String2))),
+                      index=("%d.%s" % (i, String1[i]) for i in range(len(String1))))
+    st.table(df)
+    
+    "We will compare the characters of each string at the corresponding cell. If the characters are different, we will take the maximum score between the cells directly above and to the left of our current cell. If the letters are the same, we will take the maximum between the previous two cells mentioned, and the score diagonal to our cell plus one."
+    "Following these rules for the first column gives us the following matrix:"
+
+    String1 = "BUILDER"
+    String2 = "LUBRICATED"
+
+    for i in range(1, str1len + 1):
+        for j in range (1, 2):
+            # if letters match add 1
+            if (String1[i - 1] == String2[j - 1]):
+                arr[i][j] = arr[i - 1][j - 1] + 1
+            else: # if letters dont match take max of neighboring cells
+                arr[i][j] = max(arr[i][j - 1], arr[i - 1][j])
+    
+    String1 = "0" + String1
+    String2 = "0" + String2
+
+    df = pd.DataFrame(arr, columns=("%d.%s" % (i, String2[i]) for i in range(len(String2))),
+                      index=("%d.%s" % (i, String1[i]) for i in range(len(String1))))
+    st.table(df)
+
+    "Since none of the first three letters in BUILDER are L, we give these cells a score of 0, which is the maximum score found in it's neighboring cells."
+    "Once we get to the fourth cell, we have a match with both L's, so we look at the cell diagonal at (0,3) and add one to it to get our new score of 1. The score in the rest of remaining cells in the first column will also be 1 since there are no more matches and it is the maximum score to the neighboring cells."
+
+    "We follow this pattern for the rest of the columns and get the following matrix:"
+
+    String1 = "BUILDER"
+    String2 = "LUBRICATED"
+
+    for i in range(1, str1len + 1):
+        for j in range (1, str2len + 1):
+            # if letters match add 1
+            if (String1[i - 1] == String2[j - 1]):
+                arr[i][j] = arr[i - 1][j - 1] + 1
+            else: # if letters dont match take max of neighboring cells
+                arr[i][j] = max(arr[i][j - 1], arr[i - 1][j])
+    
+    String1 = "0" + String1
+    String2 = "0" + String2
+
+    df = pd.DataFrame(arr, columns=("%d.%s" % (i, String2[i]) for i in range(len(String2))),
+                      index=("%d.%s" % (i, String1[i]) for i in range(len(String1))))
+    st.table(df)
+
+    "Once the matrix has been filled, we have to backtrack starting at the bottom right cell."
+
+    st.subheader('Applications')
+    "1. Spell Check"
+    "2. Plagiarism Detector"
+
+
+
+def stepByStepLCS(String1, String2):
+    str1len = len(String1)
+    str2len = len(String2)
+
+    arr = [['-'] * (str2len + 1) for i in range(str1len + 1)]
+    for i in range(str2len + 1):
+        arr[0][i] = 0
+    for i in range(str1len + 1):
+        arr[i][0] = 0 
+
+    # Display the table
+
+    df = pd.DataFrame(arr, columns=("%d.%s" % (i, String2[i]) for i in range(len(String2))),
+                      index=("%d.%s" % (i, String1[i]) for i in range(len(String1))))
+    st.table(df)
+
+    for i in range(1, str1len + 1):
+        for j in range (1, str2len + 1):
+            
+            # if letters match add 1
+            if (String1[i - 1] == String2[j - 1]):
+                arr[i][j] = arr[i - 1][j - 1] + 1
+            else: # if letters dont match take max of neighboring cells
+                arr[i][j] = max(arr[i][j - 1], arr[i - 1][j])
+
+    # backtrack
+    lcs = ""
+
+    i = str1len
+    j = str2len
+
+    while (i > 0 and j > 0):
+        if (String1[i - 1] == String2[j - 1]):
+            lcs += String1[i - 1]
+            i -= 1
+            j -= 1
+        elif (arr[i - 1][j] > arr[i][j - 1]):
+            i -= 1
+        elif (arr[i - 1][j] < arr[i][j - 1]):
+            j -= 1
+        else:
+            i -= 1
+
+    lcsRev = lcs[::-1]    
+    st.markdown(f"**Longest Common Subsequence:** {lcsRev}")
+    
+    
+
+main()
+
+
